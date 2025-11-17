@@ -1,0 +1,1028 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Todo List App</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    :root {
+      --bg: #0f172a;
+      --bg-soft: #111827;
+      --card: #020617;
+      --accent: #22c55e;
+      --accent-soft: rgba(34, 197, 94, 0.15);
+      --accent-danger: #ef4444;
+      --accent-danger-soft: rgba(239, 68, 68, 0.15);
+      --border: #1f2937;
+      --text: #e5e7eb;
+      --text-soft: #9ca3af;
+      --radius: 16px;
+      --radius-sm: 10px;
+      --shadow: 0 18px 45px rgba(0, 0, 0, 0.45);
+      --transition-fast: 0.18s ease-out;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Pro Text",
+        sans-serif;
+      background: radial-gradient(circle at top, #1f2933 0, #020617 55%);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .app-shell {
+      width: 100%;
+      max-width: 900px;
+      background: linear-gradient(135deg, #020617 0, #020617 60%, #111827 100%);
+      border-radius: 28px;
+      border: 1px solid rgba(148, 163, 184, 0.16);
+      box-shadow: var(--shadow);
+      padding: 24px 24px 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .app-shell::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: radial-gradient(
+          circle at top left,
+          rgba(34, 197, 94, 0.2),
+          transparent 55%
+        ),
+        radial-gradient(
+          circle at top right,
+          rgba(56, 189, 248, 0.16),
+          transparent 60%
+        );
+      opacity: 0.45;
+      mix-blend-mode: screen;
+      z-index: 0;
+    }
+
+    .app-inner {
+      position: relative;
+      z-index: 1;
+    }
+
+    header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .title-block {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(148, 163, 184, 0.2);
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-soft);
+    }
+
+    .badge-dot {
+      width: 7px;
+      height: 7px;
+      border-radius: 999px;
+      background: #22c55e;
+      box-shadow: 0 0 0 4px rgba(34, 197, 94, 0.35);
+    }
+
+    h1 {
+      font-size: 22px;
+      letter-spacing: 0.02em;
+      font-weight: 600;
+      color: #f9fafb;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--text-soft);
+    }
+
+    .stats {
+      display: flex;
+      gap: 10px;
+      font-size: 12px;
+      color: var(--text-soft);
+      margin-top: 4px;
+    }
+
+    .chip {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .chip-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.7);
+    }
+
+    .chip-dot.green {
+      background: rgba(34, 197, 94, 0.9);
+    }
+
+    /* Create form */
+    .create-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 16px;
+      align-items: center;
+    }
+
+    .input-wrap {
+      flex: 1;
+      min-width: 180px;
+      position: relative;
+    }
+
+    .input {
+      width: 100%;
+      padding: 10px 12px 10px 30px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: rgba(15, 23, 42, 0.9);
+      color: var(--text);
+      font-size: 13px;
+      outline: none;
+      transition: border-color var(--transition-fast),
+        box-shadow var(--transition-fast), background var(--transition-fast),
+        transform var(--transition-fast);
+    }
+
+    .input:focus {
+      border-color: rgba(34, 197, 94, 0.65);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.4);
+      background: #020617;
+      transform: translateY(-0.5px);
+    }
+
+    .input::placeholder {
+      color: #6b7280;
+    }
+
+    .input-icon {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 14px;
+      opacity: 0.7;
+    }
+
+    .btn {
+      border: none;
+      outline: none;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 13px;
+      font-weight: 500;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      white-space: nowrap;
+      transition: transform var(--transition-fast),
+        box-shadow var(--transition-fast), background var(--transition-fast),
+        opacity var(--transition-fast);
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, #22c55e, #16a34a);
+      color: #022c22;
+      box-shadow: 0 10px 25px rgba(22, 163, 74, 0.4);
+    }
+
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 14px 35px rgba(22, 163, 74, 0.55);
+      background: linear-gradient(135deg, #4ade80, #16a34a);
+    }
+
+    .btn-primary:active {
+      transform: translateY(0);
+      box-shadow: 0 6px 16px rgba(22, 163, 74, 0.35);
+    }
+
+    .btn-ghost {
+      background: rgba(15, 23, 42, 0.7);
+      color: var(--text-soft);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    .btn-ghost:hover {
+      background: rgba(31, 41, 55, 0.9);
+      color: #e5e7eb;
+    }
+
+    .btn-sm {
+      padding: 6px 10px;
+      font-size: 11px;
+      border-radius: 999px;
+    }
+
+    /* Filters & actions */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 14px;
+    }
+
+    .filters {
+      display: inline-flex;
+      background: rgba(15, 23, 42, 0.7);
+      border-radius: 999px;
+      padding: 3px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    .filter-btn {
+      border: none;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-size: 11px;
+      color: var(--text-soft);
+      background: transparent;
+      cursor: pointer;
+      transition: background var(--transition-fast),
+        color var(--transition-fast), transform var(--transition-fast);
+    }
+
+    .filter-btn.active {
+      background: rgba(34, 197, 94, 0.14);
+      color: #bbf7d0;
+      transform: translateY(-0.5px);
+    }
+
+    .right-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      align-items: center;
+    }
+
+    .mini-label {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--text-soft);
+    }
+
+    /* Todo list */
+    .list-shell {
+      border-radius: 18px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: radial-gradient(
+          circle at top,
+          rgba(15, 23, 42, 0.9),
+          transparent 65%
+        ),
+        rgba(15, 23, 42, 0.96);
+      padding: 10px;
+      max-height: 60vh;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .list-scroll {
+      overflow-y: auto;
+      padding-right: 4px;
+    }
+
+    .list-scroll::-webkit-scrollbar {
+      width: 6px;
+    }
+
+    .list-scroll::-webkit-scrollbar-track {
+      background: transparent;
+    }
+
+    .list-scroll::-webkit-scrollbar-thumb {
+      background: rgba(55, 65, 81, 0.9);
+      border-radius: 999px;
+    }
+
+    .todo-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      padding: 9px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: rgba(15, 23, 42, 0.96);
+      margin-bottom: 6px;
+      transition: transform var(--transition-fast),
+        box-shadow var(--transition-fast), background var(--transition-fast),
+        border-color var(--transition-fast), opacity var(--transition-fast);
+    }
+
+    .todo-item:hover {
+      transform: translateY(-1px);
+      border-color: rgba(55, 65, 81, 0.95);
+      background: rgba(15, 23, 42, 0.99);
+      box-shadow: 0 12px 25px rgba(15, 23, 42, 0.7);
+    }
+
+    .todo-left {
+      display: flex;
+      gap: 10px;
+      align-items: flex-start;
+      flex: 1;
+      min-width: 0;
+    }
+
+    .checkbox-wrap {
+      margin-top: 4px;
+    }
+
+    .checkbox {
+      width: 18px;
+      height: 18px;
+      border-radius: 7px;
+      border: 1px solid rgba(75, 85, 99, 0.9);
+      background: radial-gradient(circle at top left, #020617, #020617);
+      cursor: pointer;
+      position: relative;
+      flex-shrink: 0;
+      transition: background var(--transition-fast),
+        border-color var(--transition-fast), box-shadow var(--transition-fast),
+        transform var(--transition-fast);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .checkbox::after {
+      content: "✓";
+      font-size: 12px;
+      opacity: 0;
+      transform: scale(0.75) translateY(1px);
+      transition: opacity var(--transition-fast),
+        transform var(--transition-fast);
+      color: #022c22;
+    }
+
+    .checkbox.completed {
+      background: radial-gradient(circle at top left, #4ade80, #16a34a);
+      border-color: rgba(34, 197, 94, 0.9);
+      box-shadow: 0 0 0 1px rgba(34, 197, 94, 0.55);
+      transform: translateY(-0.5px);
+    }
+
+    .checkbox.completed::after {
+      opacity: 1;
+      transform: scale(1) translateY(1px);
+    }
+
+    .todo-main {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .todo-title {
+      font-size: 14px;
+      font-weight: 500;
+      color: #e5e7eb;
+      word-break: break-word;
+    }
+
+    .todo-title.completed {
+      text-decoration: line-through;
+      text-decoration-thickness: 1px;
+      text-decoration-color: rgba(148, 163, 184, 0.7);
+      color: #6b7280;
+    }
+
+    .todo-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 4px;
+      font-size: 11px;
+      color: var(--text-soft);
+    }
+
+    .meta-pill {
+      padding: 3px 7px;
+      border-radius: 999px;
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid rgba(31, 41, 55, 0.9);
+    }
+
+    .meta-pill.green {
+      background: var(--accent-soft);
+      border-color: rgba(34, 197, 94, 0.65);
+      color: #bbf7d0;
+    }
+
+    .todo-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+      align-items: flex-end;
+    }
+
+    .btn-icon {
+      border-radius: 999px;
+      padding: 6px;
+      border: 1px solid rgba(31, 41, 55, 0.9);
+      background: rgba(15, 23, 42, 0.9);
+      cursor: pointer;
+      font-size: 11px;
+      color: var(--text-soft);
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition-fast),
+        border-color var(--transition-fast), transform var(--transition-fast),
+        color var(--transition-fast);
+    }
+
+    .btn-icon.danger {
+      border-color: rgba(127, 29, 29, 0.9);
+      background: rgba(15, 23, 42, 0.95);
+      color: rgba(248, 113, 113, 0.9);
+    }
+
+    .btn-icon:hover {
+      transform: translateY(-0.5px);
+      background: rgba(31, 41, 55, 0.95);
+      color: #e5e7eb;
+    }
+
+    .btn-icon.danger:hover {
+      background: var(--accent-danger-soft);
+      color: #fecaca;
+    }
+
+    .badge-small {
+      font-size: 10px;
+      color: var(--text-soft);
+    }
+
+    /* Empty state & error */
+    .empty-state {
+      text-align: center;
+      padding: 20px 12px;
+      color: var(--text-soft);
+      font-size: 13px;
+    }
+
+    .empty-emoji {
+      font-size: 24px;
+      margin-bottom: 4px;
+    }
+
+    .error-bar {
+      margin-top: 12px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      border: 1px solid rgba(153, 27, 27, 0.85);
+      background: radial-gradient(
+          circle at top,
+          rgba(127, 29, 29, 0.55),
+          transparent 68%
+        ),
+        rgba(15, 23, 42, 0.95);
+      font-size: 12px;
+      color: #fecaca;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 8px;
+    }
+
+    .error-bar strong {
+      font-weight: 600;
+    }
+
+    .error-close {
+      border: none;
+      background: transparent;
+      color: inherit;
+      cursor: pointer;
+      font-size: 12px;
+      opacity: 0.8;
+    }
+
+    .loading-indicator {
+      font-size: 11px;
+      color: var(--text-soft);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot-pulse {
+      width: 6px;
+      height: 6px;
+      border-radius: 999px;
+      background: rgba(34, 197, 94, 0.9);
+      box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45);
+      animation: pulse 1.2s infinite;
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(0.98);
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.45);
+      }
+      70% {
+        transform: scale(1);
+        box-shadow: 0 0 0 8px rgba(34, 197, 94, 0);
+      }
+      100% {
+        transform: scale(0.98);
+        box-shadow: 0 0 0 0 rgba(34, 197, 94, 0);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .app-shell {
+        padding: 16px 14px 14px;
+        border-radius: 22px;
+      }
+
+      header {
+        flex-direction: column;
+      }
+
+      .create-row {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .btn-primary {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .toolbar {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .right-actions {
+        justify-content: space-between;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <div class="app-inner">
+      <header>
+        <div class="title-block">
+          <div class="badge">
+            <span class="badge-dot"></span>
+            Go Todo API · Frontend
+          </div>
+          <h1>Görevlerin · Bugün</h1>
+          <p class="subtitle">
+            Go ile yazdığın backend'e bağlanan hafif bir arayüz.
+          </p>
+          <div class="stats">
+            <div class="chip">
+              <span class="chip-dot green"></span>
+              <span id="stat-total">0 görev</span>
+            </div>
+            <div class="chip">
+              <span class="chip-dot"></span>
+              <span id="stat-completed">0 tamamlandı</span>
+            </div>
+          </div>
+        </div>
+        <div class="right-actions">
+          <div class="mini-label">Durum</div>
+          <div class="loading-indicator" id="loading-indicator">
+            <span class="dot-pulse"></span>
+            <span>API'ye bağlanılıyor…</span>
+          </div>
+        </div>
+      </header>
+
+      <section class="create-row">
+        <div class="input-wrap">
+          <span class="input-icon">✏️</span>
+          <input
+            id="new-todo-input"
+            type="text"
+            class="input"
+            placeholder="Yeni görev ekle (Enter ile kaydet)…"
+          />
+        </div>
+        <button id="add-todo-btn" class="btn btn-primary">
+          <span>+ Görev Ekle</span>
+        </button>
+      </section>
+
+      <section class="toolbar">
+        <div class="filters">
+          <button class="filter-btn active" data-filter="all">Tümü</button>
+          <button class="filter-btn" data-filter="active">Aktif</button>
+          <button class="filter-btn" data-filter="completed">Tamamlanan</button>
+        </div>
+        <div class="right-actions">
+          <button id="refresh-btn" class="btn btn-ghost btn-sm">↻ Yenile</button>
+        </div>
+      </section>
+
+      <section class="list-shell">
+        <div id="todo-list" class="list-scroll">
+          <!-- Todo items burada render edilecek -->
+        </div>
+      </section>
+
+      <div id="error-bar" class="error-bar" style="display: none;">
+        <div>
+          <strong>Hata:</strong>
+          <span id="error-message">Sunucuya ulaşılamadı.</span>
+        </div>
+        <button id="error-close-btn" class="error-close">Kapat</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // --------------------------
+    // API AYARLARI
+    // --------------------------
+    // Backend'inin adresini buradan değiştir:
+    const API_BASE_URL = "http://localhost:8080"; // Örn: Go Fiber localhost:3000
+    const ENDPOINTS = {
+      list: () => `${API_BASE_URL}/todos`,
+      create: () => `${API_BASE_URL}/todos`,
+      toggle: (id) => `${API_BASE_URL}/todos/${id}`,
+      delete: (id) => `${API_BASE_URL}/todos/${id}`,
+    };
+
+    // Backend'inde JSON field isimleri farklıysa burayı güncelle:
+    function mapFromApi(raw) {
+      return {
+        id: raw.ID ?? raw.id ?? raw.Id,
+        title: raw.title,
+        isCompleted: raw.isCompleted,
+        createdTime: raw.createdTime,
+      };
+    }
+
+    function mapToCreatePayload(title) {
+      // Backend şeman için burayı özelleştirebilirsin.
+      return { Title: title };
+    }
+
+    function mapToTogglePayload(isCompleted) {
+      return { IsCompleted: isCompleted };
+    }
+
+    // --------------------------
+    // UI ELEMENTLER
+    // --------------------------
+    const elements = {
+      newTodoInput: document.getElementById("new-todo-input"),
+      addTodoBtn: document.getElementById("add-todo-btn"),
+      todoList: document.getElementById("todo-list"),
+      filterButtons: document.querySelectorAll(".filter-btn"),
+      statTotal: document.getElementById("stat-total"),
+      statCompleted: document.getElementById("stat-completed"),
+      loadingIndicator: document.getElementById("loading-indicator"),
+      refreshBtn: document.getElementById("refresh-btn"),
+      errorBar: document.getElementById("error-bar"),
+      errorMessage: document.getElementById("error-message"),
+      errorCloseBtn: document.getElementById("error-close-btn"),
+    };
+
+    // --------------------------
+    // STATE
+    // --------------------------
+    const state = {
+      todos: [],
+      filter: "all", // all | active | completed
+      loading: false,
+    };
+
+    // --------------------------
+    // HELPERS
+    // --------------------------
+    function setLoading(isLoading, text) {
+      state.loading = isLoading;
+      elements.loadingIndicator.style.opacity = isLoading ? "1" : "0.6";
+      const span = elements.loadingIndicator.querySelector("span:nth-child(2)");
+      if (span) span.textContent = text || (isLoading ? "Yükleniyor…" : "Hazır");
+    }
+
+    function showError(message) {
+      elements.errorMessage.textContent = message || "Bilinmeyen hata.";
+      elements.errorBar.style.display = "flex";
+    }
+
+    function hideError() {
+      elements.errorBar.style.display = "none";
+    }
+
+    function formatDate(d) {
+      try {
+        const date = new Date(d);
+        if (isNaN(date.getTime())) return "";
+        return date.toLocaleString("tr-TR", {
+          day: "2-digit",
+          month: "2-digit",
+          year: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+        });
+      } catch {
+        return "";
+      }
+    }
+
+    function computeStats() {
+      const total = state.todos.length;
+      const completed = state.todos.filter((t) => t.isCompleted).length;
+      elements.statTotal.textContent = `${total} görev`;
+      elements.statCompleted.textContent = `${completed} tamamlandı`;
+    }
+
+    function getFilteredTodos() {
+      switch (state.filter) {
+        case "active":
+          return state.todos.filter((t) => !t.isCompleted);
+        case "completed":
+          return state.todos.filter((t) => t.isCompleted);
+        default:
+          return state.todos;
+      }
+    }
+
+    // --------------------------
+    // RENDER
+    // --------------------------
+    function renderTodos() {
+      const todos = getFilteredTodos();
+      elements.todoList.innerHTML = "";
+
+      if (!todos.length) {
+        const empty = document.createElement("div");
+        empty.className = "empty-state";
+        empty.innerHTML = `
+          <div class="empty-emoji">📝</div>
+          <div>Henüz görev yok veya bu filtre için sonuç bulunamadı.</div>
+        `;
+        elements.todoList.appendChild(empty);
+        computeStats();
+        return;
+      }
+
+      todos.forEach((todo) => {
+        const item = document.createElement("div");
+        item.className = "todo-item";
+
+        const left = document.createElement("div");
+        left.className = "todo-left";
+
+        const checkboxWrap = document.createElement("div");
+        checkboxWrap.className = "checkbox-wrap";
+        const checkbox = document.createElement("div");
+        checkbox.className = "checkbox";
+        if (todo.isCompleted) checkbox.classList.add("completed");
+        checkboxWrap.appendChild(checkbox);
+
+        checkbox.addEventListener("click", () => handleToggle(todo));
+
+        const main = document.createElement("div");
+        main.className = "todo-main";
+
+        const title = document.createElement("div");
+        title.className = "todo-title";
+        if (todo.isCompleted) title.classList.add("completed");
+        title.textContent = todo.title || "(başlık yok)";
+        main.appendChild(title);
+
+        const meta = document.createElement("div");
+        meta.className = "todo-meta";
+
+        if (todo.createdTime) {
+          const created = document.createElement("div");
+          created.className = "meta-pill";
+          created.textContent = `Oluşturma: ${formatDate(todo.createdTime)}`;
+          meta.appendChild(created);
+        }
+
+        const status = document.createElement("div");
+        status.className = "meta-pill " + (todo.isCompleted ? "green" : "");
+        status.textContent = todo.isCompleted ? "Tamamlandı" : "Aktif";
+        meta.appendChild(status);
+
+        main.appendChild(meta);
+
+        left.appendChild(checkboxWrap);
+        left.appendChild(main);
+
+        const actions = document.createElement("div");
+        actions.className = "todo-actions";
+
+        const deleteBtn = document.createElement("button");
+        deleteBtn.className = "btn-icon danger";
+        deleteBtn.innerHTML = "🗑";
+        deleteBtn.title = "Görevi sil";
+        deleteBtn.addEventListener("click", () => handleDelete(todo));
+
+        actions.appendChild(deleteBtn);
+
+        const idBadge = document.createElement("div");
+        idBadge.className = "badge-small";
+        idBadge.textContent = `#${todo.id ?? "?"}`;
+        actions.appendChild(idBadge);
+
+        item.appendChild(left);
+        item.appendChild(actions);
+
+        elements.todoList.appendChild(item);
+      });
+
+      computeStats();
+    }
+
+    // --------------------------
+    // API İŞLEMLERİ
+    // --------------------------
+    async function fetchTodos() {
+      hideError();
+      setLoading(true, "Görevler çekiliyor…");
+      try {
+        const res = await fetch(ENDPOINTS.list());
+        if (!res.ok) {
+          throw new Error(`GET /todos hata: ${res.status}`);
+        }
+        const data = await res.json();
+        const todos = Array.isArray(data) ? data : data.todos || [];
+        state.todos = todos.map(mapFromApi);
+        renderTodos();
+      } catch (err) {
+        console.error(err);
+        showError(
+          "Görevleri çekerken bir hata oluştu. Backend ayarlarını kontrol et."
+        );
+      } finally {
+        setLoading(false, "Hazır");
+      }
+    }
+
+    async function createTodo(title) {
+      if (!title || !title.trim()) return;
+      hideError();
+      setLoading(true, "Görev ekleniyor…");
+      try {
+        const res = await fetch(ENDPOINTS.create(), {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(mapToCreatePayload(title.trim())),
+        });
+        if (!res.ok) {
+          throw new Error(`POST /todos hata: ${res.status}`);
+        }
+
+        // Çoğu API ya yeni todo'yu döner ya da listeyi tekrar çekmen gerekir.
+        // Basit olsun diye GET ile listeyi yeniliyoruz.
+        elements.newTodoInput.value = "";
+        await fetchTodos();
+      } catch (err) {
+        console.error(err);
+        showError("Görev eklerken bir hata oluştu.");
+      } finally {
+        setLoading(false, "Hazır");
+      }
+    }
+
+    async function handleToggle(todo) {
+      hideError();
+      const newState = !todo.isCompleted;
+      setLoading(true, "Durum güncelleniyor…");
+      try {
+        const res = await fetch(ENDPOINTS.toggle(todo.id), {
+          method: "PATCH", // Backend'in PUT kullanıyorsa değiştir
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify(mapToTogglePayload(newState)),
+        });
+        if (!res.ok) {
+          throw new Error(`PATCH /todos/:id hata: ${res.status}`);
+        }
+        // Optimistic update için:
+        state.todos = state.todos.map((t) =>
+          t.id === todo.id ? { ...t, isCompleted: newState } : t
+        );
+        renderTodos();
+      } catch (err) {
+        console.error(err);
+        showError("Görev durumu güncellenemedi.");
+      } finally {
+        setLoading(false, "Hazır");
+      }
+    }
+
+    async function handleDelete(todo) {
+      const confirmDelete = confirm(
+        `"${todo.title}" görevini silmek istediğine emin misin?`
+      );
+      if (!confirmDelete) return;
+
+      hideError();
+      setLoading(true, "Görev siliniyor…");
+      try {
+        const res = await fetch(ENDPOINTS.delete(todo.id), {
+          method: "DELETE",
+        });
+        if (!res.ok) {
+          throw new Error(`DELETE /todos/:id hata: ${res.status}`);
+        }
+        state.todos = state.todos.filter((t) => t.id !== todo.id);
+        renderTodos();
+      } catch (err) {
+        console.error(err);
+        showError("Görev silinirken bir hata oluştu.");
+      } finally {
+        setLoading(false, "Hazır");
+      }
+    }
+
+    // --------------------------
+    // EVENT LISTENERS
+    // --------------------------
+    elements.addTodoBtn.addEventListener("click", () => {
+      createTodo(elements.newTodoInput.value);
+    });
+
+    elements.newTodoInput.addEventListener("keydown", (e) => {
+      if (e.key === "Enter") {
+        e.preventDefault();
+        createTodo(elements.newTodoInput.value);
+      }
+    });
+
+    elements.filterButtons.forEach((btn) => {
+      btn.addEventListener("click", () => {
+        elements.filterButtons.forEach((b) => b.classList.remove("active"));
+        btn.classList.add("active");
+        state.filter = btn.dataset.filter;
+        renderTodos();
+      });
+    });
+
+    elements.refreshBtn.addEventListener("click", () => {
+      fetchTodos();
+    });
+
+    elements.errorCloseBtn.addEventListener("click", () => {
+      hideError();
+    });
+
+    // --------------------------
+    // INIT
+    // --------------------------
+    fetchTodos();
+  </script>
+</body>
+</html>

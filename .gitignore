@@ -1,0 +1,63 @@
+# GO
+bin/
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+
+# Go Modules
+go.sum
+
+# DB files
+*.db
+
+# Flutter
+**/build/
+**/.dart_tool/
+**/.packages
+**/pubspec.lock
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+
+# Android
+**/android/app/debug/
+**/android/app/profile/
+**/android/app/release/
+
+# iOS
+**/ios/Flutter/.last_build_id
+**/ios/Flutter/Flutter.framework
+**/ios/Flutter/Flutter.podspec
+**/ios/ServiceDefinitions.json
+**/ios/Runner/GeneratedPluginRegistrant.*
+
+# Xcode
+**/ios/Runner.xcodeproj/*
+!**/ios/Runner.xcodeproj/project.pbxproj
+!**/ios/Runner.xcodeproj/xcshareddata
+!**/ios/Runner.xcodeproj/project.xcworkspace
+
+# MacOS
+**/macos/Flutter/ephemeral/
+
+# Linux
+**/linux/flutter/ephemeral/
+
+# Web
+**/web/.dart_tool/
+
+# Windows
+**/windows/flutter/ephemeral/
+
+# VSCode
+.vscode/
+.idea/
+
+# OSX Finder
+.DS_Store
+
+# Logs
+*.log
