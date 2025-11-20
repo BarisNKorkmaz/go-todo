@@ -8,13 +8,14 @@ import (
 )
 
 type Todo struct {
-	ID            int       `json:"id"`
+	ID            int       `gorm:"primaryKey" json:"id"`
 	Title         string    `json:"title"`
 	Description   string    `json:"desc"`
-	IsCompleted   bool      `gorm:"default: false"`
+	IsCompleted   bool      `gorm:"default: false" json:"isCompleted"`
 	CreatedTime   time.Time `json:"createdTime"`
-	CompletedTime time.Time `json:"complitedTime"`
+	CompletedTime time.Time `json:"completedTime"`
 	DueDate       time.Time `json:"dueDate"`
+	UserID        uint      `json:"UserID"`
 }
 
 type TodoCreate struct {
@@ -49,18 +50,18 @@ func CreateTodo(dest *Todo) *gorm.DB {
 	return database.DB.Model(&Todo{}).Create(dest)
 }
 
-func DeleteTodoByID(id any) *gorm.DB {
-	return database.DB.Delete(&Todo{}, id)
+func DeleteTodoByID(todoID uint, userID uint) *gorm.DB {
+	return database.DB.Model(&Todo{}).Where("id = ? AND user_id = ?", todoID, userID).Delete(&Todo{})
 }
 
-func GetAllTodos(todos *[]Todo) *gorm.DB {
-	return database.DB.Find(todos)
+func GetAllTodos(todos *[]Todo, userID uint) *gorm.DB {
+	return database.DB.Model(&Todo{}).Where("user_id = ?", userID).Find(todos)
 }
 
-func GetTodoByID(dest any, id any) *gorm.DB {
-	return database.DB.Model(&Todo{}).Where("ID=?", id).First(dest)
+func GetTodoByID(dest any, todoID uint, userID uint) *gorm.DB {
+	return database.DB.Model(&Todo{}).Where("ID= ? AND user_id = ?", todoID, userID).First(dest)
 }
 
-func UpdateTodoByID(id any, dest any) *gorm.DB {
-	return database.DB.Model(&Todo{}).Where("ID=?", id).Updates(dest)
+func UpdateTodoByID(dest any, todoID uint, userID uint) *gorm.DB {
+	return database.DB.Model(&Todo{}).Where("ID= ? AND user_id= ?", todoID, userID).Updates(dest)
 }

@@ -2,6 +2,7 @@ package services
 
 import (
 	"fmt"
+	"strconv"
 	"time"
 	"todo/dal"
 
@@ -10,7 +11,14 @@ import (
 )
 
 func UpdateTodoByIDHandle(c *fiber.Ctx) error {
-	todoID := c.Params("todoID")
+	idStr := c.Params("todoID")
+	id64, err := strconv.ParseUint(idStr, 10, 64)
+	if err != nil {
+		return ResponseMessage(c, 400, "wrong formatted id")
+	}
+	todoID := uint(id64)
+
+	userID := c.Locals("userID").(uint)
 	data := new(dal.TodoUpdate)
 
 	if err := c.BodyParser(data); err != nil {
@@ -30,9 +38,9 @@ func UpdateTodoByIDHandle(c *fiber.Ctx) error {
 		})
 	}
 
-	doCompleted(todoID, data)
+	doCompleted(todoID, userID, data)
 
-	res := dal.UpdateTodoByID(todoID, data)
+	res := dal.UpdateTodoByID(data, todoID, userID)
 
 	if res.Error != nil || res.RowsAffected == 0 {
 		return ResponseMessage(c, 500, "Todo update failed")
@@ -42,12 +50,12 @@ func UpdateTodoByIDHandle(c *fiber.Ctx) error {
 
 }
 
-func doCompleted(todoID string, data *dal.TodoUpdate) {
+func doCompleted(todoID uint, userID uint, data *dal.TodoUpdate) {
 
 	oldData := new(dal.TodoResponse)
 	newData := new(dal.TodoMakeCompleted)
 
-	res := dal.GetTodoByID(oldData, todoID)
+	res := dal.GetTodoByID(oldData, todoID, userID)
 
 	if res.Error != nil {
 		fmt.Println("has an error on getting old data")
@@ -58,7 +66,7 @@ func doCompleted(todoID string, data *dal.TodoUpdate) {
 		newData.CompletedTime = time.Now()
 	}
 
-	updateRes := dal.UpdateTodoByID(todoID, newData)
+	updateRes := dal.UpdateTodoByID(newData, todoID, userID)
 
 	if updateRes.Error != nil {
 		fmt.Println("has an error on updating")

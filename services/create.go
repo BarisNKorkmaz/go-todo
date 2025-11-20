@@ -14,7 +14,7 @@ var validate = validator.New()
 func CreateTodoHandle(c *fiber.Ctx) error {
 	data := new(dal.TodoCreate)
 
-	if err := c.BodyParser(&data); err != nil {
+	if err := c.BodyParser(data); err != nil {
 		return c.Status(400).JSON(fiber.Map{"message": err.Error()})
 	}
 
@@ -37,14 +37,15 @@ func CreateTodoHandle(c *fiber.Ctx) error {
 	todo.Description = data.Description
 	todo.DueDate = data.DueDate
 	todo.CreatedTime = time.Now()
+	todo.UserID = c.Locals("userID").(uint)
 
 	res := dal.CreateTodo(&todo)
 
 	if res.Error != nil {
-		return ResponseMessage(c, 500, "Todo create oparetion is failed")
+		return ResponseMessage(c, 500, "Todo create operation failed")
 	}
 
-	return ResponseMessage(c, 200, "ToDo successfully created")
+	return ResponseMessage(c, 201, "ToDo successfully created")
 
 }
 
